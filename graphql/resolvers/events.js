@@ -15,21 +15,24 @@ module.exports = {
       throw error;
     }
   },
-  createEvent: async args => {
+  createEvent: async (args, req) => {
     try {
+      if(!req.isAuth) {
+        throw new Error('Unauthorized');
+      }
       const event = new Event({
           title: args.eventInput.title,
           description: args.eventInput.description,
           price: +args.eventInput.price,
           date: dateToString(args.eventInput.date),
-          creator: '5c2aa7ad36e5aadbc0abffca'
+          creator: req.userId,
       })
       let createdEvent;
   
       const result = await event.save();
       createdEvent =  transformEvent(result);
   
-      const existingUser = await User.findById('5c2aa7ad36e5aadbc0abffca');
+      const existingUser = await User.findById(req.userId);
       if(existingUser) {
         existingUser.createdEvents.push(event);
           await existingUser.save();
